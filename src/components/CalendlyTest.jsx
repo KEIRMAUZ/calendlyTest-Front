@@ -352,6 +352,32 @@ const CalendlyTest = () => {
     }
   };
 
+  // Función para verificar cookies del navegador
+  const checkBrowserCookies = () => {
+    console.log('🍪 Browser Cookies Check:');
+    console.log('📋 All cookies:', document.cookie);
+    
+    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {});
+    
+    console.log('🔍 Parsed cookies:', cookies);
+    console.log('🔑 JWT Token in browser:', cookies.jwt ? 'Presente' : 'Ausente');
+    
+    setDebugInfo(prev => ({
+      ...prev,
+      browserCookies: {
+        allCookies: document.cookie,
+        parsedCookies: cookies,
+        jwtTokenPresent: !!cookies.jwt
+      }
+    }));
+    
+    setMessage('🍪 Cookies del navegador verificadas');
+  };
+
   // Si está cargando la autenticación, mostrar spinner
   if (authLoading) {
     return (
@@ -560,6 +586,21 @@ const CalendlyTest = () => {
                   </>
                 ) : (
                   '🔍 Diagnosticar Cookies y Autenticación'
+                )}
+              </button>
+              
+              <button 
+                onClick={checkBrowserCookies}
+                disabled={status === 'loading'}
+                className="button"
+              >
+                {status === 'loading' ? (
+                  <>
+                    <span className="loading-spinner"></span>
+                    Verificar cookies del navegador...
+                  </>
+                ) : (
+                  '🍪 Verificar Cookies del Navegador'
                 )}
               </button>
               

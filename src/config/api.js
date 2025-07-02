@@ -27,16 +27,40 @@ export const apiRequest = async (endpoint, options = {}) => {
     ...options,
   };
 
+  // Logs de diagnóstico
+  console.log('🔍 DEBUG API Request:', {
+    url,
+    method: config.method,
+    credentials: config.credentials,
+    headers: config.headers,
+    endpoint
+  });
+
   try {
     const response = await fetch(url, config);
     
+    // Log de respuesta
+    console.log('📡 API Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      url: response.url,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+    
     if (!response.ok) {
+      console.error('❌ API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url
+      });
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log('✅ API Success Response:', data);
+    return data;
   } catch (error) {
-    console.error('Error en petición API:', error);
+    console.error('💥 API Request Error:', error);
     throw error;
   }
 };
