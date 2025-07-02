@@ -40,6 +40,7 @@ export const apiRequest = async (endpoint, options = {}) => {
     throw error;
   }
 };
+console.log("Hola")
 
 // Funciones específicas para diferentes endpoints
 export const api = {
