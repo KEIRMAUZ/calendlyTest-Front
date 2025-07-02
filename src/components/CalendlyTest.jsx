@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../config/api.js';
+import { api, apiRequest } from '../config/api';
 import { checkAuthStatus, initiateGoogleAuth } from '../config/auth.js';
 
 const CalendlyTest = () => {
@@ -9,6 +9,8 @@ const CalendlyTest = () => {
   const [activeTab, setActiveTab] = useState('auth');
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState({});
+  const [message, setMessage] = useState('');
 
   // Verificar estado de autenticación al cargar
   useEffect(() => {
@@ -32,6 +34,114 @@ const CalendlyTest = () => {
 
     checkAuth();
   }, []);
+
+  // Verificar parámetros de URL después de autenticación
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+    const message = urlParams.get('message');
+
+    if (success === 'true') {
+      // Limpiar parámetros de URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Recargar estado de autenticación después de un breve delay
+      setTimeout(() => {
+        checkAuthStatus().then(authStatus => {
+          if (authStatus.authenticated && authStatus.user) {
+            setUser(authStatus.user);
+            setAuthLoading(false);
+          }
+        });
+      }, 1000);
+    } else if (error) {
+      console.error('Error de autenticación:', error, message);
+      // Limpiar parámetros de URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  // Función para recargar el estado de autenticación
+  const reloadAuthStatus = async () => {
+    setAuthLoading(true);
+    try {
+      const authStatus = await checkAuthStatus();
+      
+      if (authStatus.authenticated && authStatus.user) {
+        setUser(authStatus.user);
+        setStatus('success');
+        setData(authStatus);
+      } else {
+        setUser(null);
+        setStatus('error');
+        setError('No autenticado');
+      }
+    } catch (err) {
+      setUser(null);
+      setStatus('error');
+      setError(err.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Función para verificar el estado de autenticación
+  const checkAuthStatus = async () => {
+    setStatus('loading');
+    setError(null);
+    
+    try {
+      const response = await fetch('http://localhost:3000/auth/status', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      setData(result);
+      setStatus('success');
+      return result;
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
+      throw err;
+    }
+  };
+
+  // Función para probar conectividad básica del backend
+  const testBackendConnection = async () => {
+    setStatus('loading');
+    setError(null);
+    
+    try {
+      const response = await fetch('http://localhost:3000/calendly/ping', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      setData(result);
+      setStatus('success');
+    } catch (err) {
+      setError(err.message);
+      setStatus('error');
+    }
+  };
 
   // Función para probar autenticación JWT
   const testAuth = async () => {
@@ -204,6 +314,44 @@ const CalendlyTest = () => {
     }
   };
 
+  // Función para probar la autenticación JWT
+  const testJwtAuth = async () => {
+    setStatus('loading');
+    setError(null);
+    try {
+      const response = await api.calendly.testAuth();
+      setDebugInfo(prev => ({
+        ...prev,
+        jwtAuth: response
+      }));
+      setMessage('✅ Autenticación JWT exitosa');
+    } catch (error) {
+      setError(`❌ Error en autenticación JWT: ${error.message}`);
+      console.error('Error en autenticación JWT:', error);
+    } finally {
+      setStatus('idle');
+    }
+  };
+
+  // Función para diagnosticar cookies y autenticación
+  const debugAuth = async () => {
+    setStatus('loading');
+    setError(null);
+    try {
+      const response = await apiRequest('/calendly/debug-auth');
+      setDebugInfo(prev => ({
+        ...prev,
+        debugAuth: response
+      }));
+      setMessage('🔍 Información de diagnóstico obtenida');
+    } catch (error) {
+      setError(`❌ Error en diagnóstico: ${error.message}`);
+      console.error('Error en diagnóstico:', error);
+    } finally {
+      setStatus('idle');
+    }
+  };
+
   // Si está cargando la autenticación, mostrar spinner
   if (authLoading) {
     return (
@@ -341,6 +489,36 @@ const CalendlyTest = () => {
             
             <div className="button-group">
               <button 
+                onClick={testBackendConnection}
+                disabled={status === 'loading'}
+                className="button secondary"
+              >
+                {status === 'loading' ? (
+                  <>
+                    <span className="loading-spinner"></span>
+                    Probando conexión...
+                  </>
+                ) : (
+                  '🔗 Probar Conexión Backend'
+                )}
+              </button>
+              
+              <button 
+                onClick={reloadAuthStatus}
+                disabled={status === 'loading'}
+                className="button secondary"
+              >
+                {status === 'loading' ? (
+                  <>
+                    <span className="loading-spinner"></span>
+                    Recargar estado...
+                  </>
+                ) : (
+                  '📊 Recargar Estado Auth'
+                )}
+              </button>
+              
+              <button 
                 onClick={testAuth}
                 disabled={status === 'loading'}
                 className="button"
@@ -352,6 +530,36 @@ const CalendlyTest = () => {
                   </>
                 ) : (
                   '🔐 Probar Autenticación JWT'
+                )}
+              </button>
+              
+              <button 
+                onClick={testJwtAuth}
+                disabled={status === 'loading'}
+                className="button"
+              >
+                {status === 'loading' ? (
+                  <>
+                    <span className="loading-spinner"></span>
+                    Probando autenticación JWT...
+                  </>
+                ) : (
+                  '🔐 Probar Autenticación JWT'
+                )}
+              </button>
+              
+              <button 
+                onClick={debugAuth}
+                disabled={status === 'loading'}
+                className="button"
+              >
+                {status === 'loading' ? (
+                  <>
+                    <span className="loading-spinner"></span>
+                    Diagnosticar cookies y autenticación...
+                  </>
+                ) : (
+                  '🔍 Diagnosticar Cookies y Autenticación'
                 )}
               </button>
               
@@ -379,13 +587,22 @@ const CalendlyTest = () => {
                 <strong>Error:</strong> {error}
                 {error.includes('401') && (
                   <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '0.5rem', border: '1px solid #f59e0b' }}>
-                    <strong>💡 Solución:</strong>
+                    <strong>💡 Diagnóstico paso a paso:</strong>
                     <ol style={{ marginTop: '0.5rem', marginLeft: '1rem' }}>
-                      <li>Verifica que estés autenticado con Google OAuth</li>
-                      <li>Si el problema persiste, intenta cerrar sesión y volver a iniciar</li>
-                      <li>Verifica que el backend esté ejecutándose en http://localhost:3000</li>
-                      <li>Revisa la consola del navegador para más detalles</li>
+                      <li><strong>Paso 1:</strong> Haz clic en "🔗 Probar Conexión Backend" para verificar que el servidor esté ejecutándose</li>
+                      <li><strong>Paso 2:</strong> Si el backend funciona, haz clic en "📊 Recargar Estado Auth" para ver el estado de tu autenticación</li>
+                      <li><strong>Paso 3:</strong> Si no estás autenticado, haz clic en "🔐 Iniciar Sesión con Google" en la parte superior</li>
+                      <li><strong>Paso 4:</strong> Después de autenticarte, vuelve a probar la autenticación JWT</li>
                     </ol>
+                    <div style={{ marginTop: '1rem', padding: '0.5rem', backgroundColor: '#fee2e2', borderRadius: '0.25rem', border: '1px solid #ef4444' }}>
+                      <strong>🚨 Posibles causas:</strong>
+                      <ul style={{ marginTop: '0.5rem', marginLeft: '1rem' }}>
+                        <li>Backend no ejecutándose en http://localhost:3000</li>
+                        <li>Token JWT expirado o inválido</li>
+                        <li>Cookies bloqueadas por el navegador</li>
+                        <li>Problema de CORS entre frontend y backend</li>
+                      </ul>
+                    </div>
                   </div>
                 )}
               </div>
@@ -440,6 +657,33 @@ const CalendlyTest = () => {
                 </div>
               </div>
             )}
+
+            {/* Información de Debug */}
+            <div className="debug-section">
+              <h3>🔍 Información de Debug</h3>
+              <div className="debug-info">
+                <p><strong>Estado de autenticación:</strong> {user ? '✅ Autenticado' : '❌ No autenticado'}</p>
+                {user && (
+                  <p><strong>Usuario actual:</strong> {user.name} ({user.email})</p>
+                )}
+                <p><strong>URL actual:</strong> {window.location.href}</p>
+                <p><strong>Cookies habilitadas:</strong> {navigator.cookieEnabled ? '✅ Sí' : '❌ No'}</p>
+                <p><strong>Backend URL:</strong> {api.BASE_URL || 'http://localhost:3000'}</p>
+              </div>
+              
+              {message && (
+                <div className="message">
+                  <p>{message}</p>
+                </div>
+              )}
+              
+              {Object.keys(debugInfo).length > 0 && (
+                <div className="debug-data">
+                  <h4>📊 Datos de Diagnóstico:</h4>
+                  <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
