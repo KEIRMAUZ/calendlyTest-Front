@@ -4,11 +4,18 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import BackendTest from './components/BackendTest.jsx'
 import CalendlyTest from './components/CalendlyTest.jsx'
+import EventForm from './components/EventForm.jsx'
+import EventList from './components/EventList.jsx'
+import TestEventCreator from './components/TestEventCreator.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
   const [showBackendTest, setShowBackendTest] = useState(false)
   const [showCalendlyTest, setShowCalendlyTest] = useState(false)
+  const [showEventForm, setShowEventForm] = useState(false)
+  const [showEventList, setShowEventList] = useState(false)
+  const [showTestCreator, setShowTestCreator] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   return (
     <div className="container">
@@ -62,11 +69,59 @@ function App() {
           >
             {showCalendlyTest ? '📅 Ocultar Prueba Calendly' : '📅 Mostrar Prueba Calendly'}
           </button>
+
+          <button 
+            onClick={() => setShowEventForm(!showEventForm)}
+            className={`button ${showEventForm ? 'danger' : 'primary'}`}
+            style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+          >
+            {showEventForm ? '❌ Cerrar Formulario' : '➕ Crear Evento'}
+          </button>
+
+          <button 
+            onClick={() => setShowEventList(!showEventList)}
+            className={`button ${showEventList ? 'danger' : 'secondary'}`}
+            style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+          >
+            {showEventList ? '📋 Ocultar Eventos' : '📋 Ver Eventos'}
+          </button>
+
+          <button 
+            onClick={() => setShowTestCreator(!showTestCreator)}
+            className={`button ${showTestCreator ? 'danger' : 'warning'}`}
+            style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+          >
+            {showTestCreator ? '🧪 Ocultar Creador de Pruebas' : '🧪 Creador de Pruebas'}
+          </button>
         </div>
       </div>
       
       {showBackendTest && <BackendTest />}
       {showCalendlyTest && <CalendlyTest />}
+      
+      {showEventForm && (
+        <EventForm 
+          onEventCreated={(event) => {
+            console.log('Evento creado:', event);
+            setRefreshTrigger(prev => prev + 1);
+            setShowEventForm(false);
+          }}
+          onClose={() => setShowEventForm(false)}
+        />
+      )}
+      
+      {showEventList && (
+        <EventList refreshTrigger={refreshTrigger} />
+      )}
+      
+      {showTestCreator && (
+        <TestEventCreator 
+          onEventCreated={(event) => {
+            console.log('Evento de prueba creado:', event);
+            setRefreshTrigger(prev => prev + 1);
+          }}
+        />
+      )}
       
       <div className="card" style={{ textAlign: 'center' }}>
         <p className="read-the-docs">

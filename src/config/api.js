@@ -87,6 +87,19 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(eventData),
     }),
+    createCustomEvent: (eventData) => apiRequest('/calendly/custom-events', {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    }),
+    deleteEvent: (eventId) => apiRequest(`/calendly/events/${eventId}`, {
+      method: 'DELETE',
+    }),
+    
+    // Eventos de prueba
+    getTestEvents: () => apiRequest('/calendly/test-events'),
+    clearTestEvents: () => apiRequest('/calendly/test-events', {
+      method: 'DELETE',
+    }),
     
     // Estadísticas
     getStats: () => apiRequest('/calendly/stats'),
