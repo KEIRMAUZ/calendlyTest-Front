@@ -7,6 +7,8 @@ import CalendlyTest from './components/CalendlyTest.jsx'
 import EventForm from './components/EventForm.jsx'
 import EventList from './components/EventList.jsx'
 import TestEventCreator from './components/TestEventCreator.jsx'
+import CalendlyStatus from './components/CalendlyStatus.jsx'
+import CustomEventCreator from './components/CustomEventCreator.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -15,6 +17,8 @@ function App() {
   const [showEventForm, setShowEventForm] = useState(false)
   const [showEventList, setShowEventList] = useState(false)
   const [showTestCreator, setShowTestCreator] = useState(false)
+  const [showCalendlyStatus, setShowCalendlyStatus] = useState(false)
+  const [showCustomCreator, setShowCustomCreator] = useState(false)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   return (
@@ -93,6 +97,22 @@ function App() {
           >
             {showTestCreator ? '🧪 Ocultar Creador de Pruebas' : '🧪 Creador de Pruebas'}
           </button>
+
+          <button 
+            onClick={() => setShowCalendlyStatus(!showCalendlyStatus)}
+            className={`button ${showCalendlyStatus ? 'danger' : 'info'}`}
+            style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+          >
+            {showCalendlyStatus ? '🔧 Ocultar Estado' : '🔧 Estado de Calendly'}
+          </button>
+
+          <button 
+            onClick={() => setShowCustomCreator(!showCustomCreator)}
+            className={`button ${showCustomCreator ? 'danger' : 'primary'}`}
+            style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+          >
+            {showCustomCreator ? '❌ Cerrar Creador' : '🎯 Creador Personalizado'}
+          </button>
         </div>
       </div>
       
@@ -120,6 +140,19 @@ function App() {
             console.log('Evento de prueba creado:', event);
             setRefreshTrigger(prev => prev + 1);
           }}
+        />
+      )}
+      
+      {showCalendlyStatus && <CalendlyStatus />}
+      
+      {showCustomCreator && (
+        <CustomEventCreator 
+          onEventCreated={(event) => {
+            console.log('Evento personalizado creado:', event);
+            setRefreshTrigger(prev => prev + 1);
+            setShowCustomCreator(false);
+          }}
+          onClose={() => setShowCustomCreator(false)}
         />
       )}
       

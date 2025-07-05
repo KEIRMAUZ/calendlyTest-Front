@@ -225,7 +225,17 @@ const EventForm = ({ onEventCreated, onClose }) => {
 
       {showCustomForm && (
         <div className="custom-event-notice">
-          <p>🎯 <strong>Modo Evento Personalizado:</strong> Puedes crear un evento completamente personalizado con tus propios datos.</p>
+          <p>🎯 <strong>Modo Evento Personalizado:</strong> Crea un evento completamente personalizado con tus propios datos. Todos los campos están habilitados para que puedas personalizar completamente tu evento.</p>
+          <div className="custom-form-tips">
+            <p><strong>💡 Consejos:</strong></p>
+            <ul>
+              <li>Puedes escribir cualquier título y descripción</li>
+              <li>Selecciona la fecha y hora que prefieras</li>
+              <li>Agrega tu ubicación personalizada</li>
+              <li>Incluye los emails de los invitados que quieras</li>
+              <li>Define el número máximo de asistentes</li>
+            </ul>
+          </div>
         </div>
       )}
 

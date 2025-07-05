@@ -62,10 +62,10 @@ const TestEventCreator = ({ onEventCreated }) => {
     setMessage('');
 
     try {
-      // Solicitar datos al usuario
-      const title = prompt('📝 Título del evento:') || 'Evento Personalizado';
-      const description = prompt('📝 Descripción del evento:') || 'Evento creado personalmente';
-      const location = prompt('📍 Ubicación:') || 'Ubicación personalizada';
+      // Solicitar datos al usuario con prompts más claros
+      const title = prompt('📝 Título del evento (escribe el título que quieras):') || 'Evento Personalizado';
+      const description = prompt('📝 Descripción del evento (describe tu evento):') || 'Evento creado personalmente';
+      const location = prompt('📍 Ubicación (ej: Oficina, Zoom, Cafetería, etc.):') || 'Ubicación personalizada';
       const attendees = prompt('👥 Invitados (emails separados por comas):', userEmail || 'usuario@test.com') || (userEmail || 'usuario@test.com');
       
       // Calcular fecha (mañana por defecto)
@@ -73,8 +73,10 @@ const TestEventCreator = ({ onEventCreated }) => {
       const startDate = prompt('📅 Fecha de inicio (YYYY-MM-DD HH:MM):', 
         tomorrow.toISOString().slice(0, 16).replace('T', ' ')) || tomorrow.toISOString();
       
-      const duration = prompt('⏱️ Duración en minutos:') || '60';
+      const duration = prompt('⏱️ Duración en minutos (15, 30, 45, 60, 90, 120):') || '60';
       const endDate = new Date(new Date(startDate).getTime() + parseInt(duration) * 60 * 1000).toISOString();
+
+      const maxAttendees = prompt('👥 Máximo de asistentes (número):') || '5';
 
       const testEventData = {
         title,
@@ -83,7 +85,7 @@ const TestEventCreator = ({ onEventCreated }) => {
         endDate,
         location,
         attendees: attendees.split(',').map(email => email.trim()),
-        maxAttendees: parseInt(prompt('👥 Máximo de asistentes:') || '5')
+        maxAttendees: parseInt(maxAttendees)
       };
 
       const response = await api.calendly.createEvent(testEventData);
@@ -159,10 +161,11 @@ const TestEventCreator = ({ onEventCreated }) => {
       <div className="test-info">
         <p><strong>Opciones disponibles:</strong></p>
         <ul>
-          <li><strong>➕ Crear Evento Rápido:</strong> Crea un evento automático con datos por defecto</li>
-          <li><strong>✏️ Crear Evento Personalizado:</strong> Te permite ingresar todos los datos del evento</li>
+          <li><strong>➕ Crear Evento Rápido:</strong> Crea un evento automático con datos por defecto (para pruebas rápidas)</li>
+          <li><strong>✏️ Crear Evento Personalizado:</strong> Te permite ingresar <strong>TODOS</strong> los datos del evento con prompts interactivos</li>
           <li><strong>🗑️ Limpiar Eventos:</strong> Elimina todos los eventos de prueba</li>
           <li>💾 Todos los eventos se guardan en memoria del servidor</li>
+          <li>🎯 <strong>Recomendado:</strong> Usa "Crear Evento Personalizado" para eventos con tus datos reales</li>
         </ul>
       </div>
     </div>

@@ -120,8 +120,15 @@ const EventList = ({ refreshTrigger }) => {
     }
   };
 
-  const getEventTypeIcon = (eventType) => {
-    switch (eventType?.toLowerCase()) {
+  const getEventTypeIcon = (event) => {
+    // Si es un evento personalizado
+    if (event.is_custom_event || event.is_test_event) {
+      return '➕';
+    }
+    
+    // Para eventos de Calendly
+    const eventType = event.event_type?.toLowerCase();
+    switch (eventType) {
       case 'meeting':
         return '🤝';
       case 'call':
@@ -227,15 +234,20 @@ const EventList = ({ refreshTrigger }) => {
             const status = getEventStatus(event.start_time);
             
             return (
-              <div key={event.uri} className={`event-card ${status.status}`}>
+              <div key={event.uri || event.id} className={`event-card ${status.status}`}>
                 <div className="event-header">
                   <div className="event-icon">
-                    {getEventTypeIcon(event.event_type)}
+                    {getEventTypeIcon(event)}
                   </div>
                   <div className="event-status">
                     <span className={`status-badge ${status.color}`}>
                       {status.label}
                     </span>
+                    {(event.is_custom_event || event.is_test_event) && (
+                      <span className="custom-event-badge">
+                        Personalizado
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -263,7 +275,7 @@ const EventList = ({ refreshTrigger }) => {
                       </div>
                     )}
                     
-                    {event.location && (
+                    {event.location && event.location !== 'Sin ubicación' && (
                       <div className="event-detail">
                         📍 <span>{event.location}</span>
                       </div>
@@ -286,6 +298,22 @@ const EventList = ({ refreshTrigger }) => {
                         👥 Asistentes: <span>{event.attendees.join(', ')}</span>
                       </div>
                     )}
+
+                    {/* Mostrar información adicional para eventos personalizados */}
+                    {event.customData && (
+                      <>
+                        {event.customData.duration && (
+                          <div className="event-detail">
+                            ⏱️ Duración: <span>{event.customData.duration} minutos</span>
+                          </div>
+                        )}
+                        {event.customData.maxAttendees && (
+                          <div className="event-detail">
+                            👥 Máx. asistentes: <span>{event.customData.maxAttendees}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {event.event_type && (
@@ -297,7 +325,8 @@ const EventList = ({ refreshTrigger }) => {
                 </div>
 
                 <div className="event-actions">
-                  {event.uri && (
+                  {/* Solo mostrar enlace a Calendly para eventos reales */}
+                  {event.uri && !event.is_custom_event && !event.is_test_event && (
                     <a
                       href={event.uri}
                       target="_blank"
@@ -309,7 +338,7 @@ const EventList = ({ refreshTrigger }) => {
                   )}
                   
                   <button
-                    onClick={() => handleDeleteEvent(event.uri)}
+                    onClick={() => handleDeleteEvent(event.uri || event.id)}
                     className="action-button delete"
                     title="Eliminar evento"
                   >

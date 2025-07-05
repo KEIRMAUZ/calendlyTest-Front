@@ -141,5 +141,8 @@ export const api = {
     // OAuth
     connect: () => apiRequest('/calendly/connect'),
     callback: (code) => apiRequest(`/calendly/callback?code=${code}`),
+    
+    // Estado de configuración
+    getConfigStatus: () => apiRequest('/calendly/config-status'),
   },
 }; 
